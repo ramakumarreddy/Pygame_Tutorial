@@ -7,23 +7,37 @@ pygame.init()
 # Create the screen.
 screen = pygame.display.set_mode((800, 600))
 
+# Background
+background = pygame.image.load("background1.png")
+
 # Caption and Icon
 pygame.display.set_caption("Space War - A Game by Ram Kumar")
 icon = pygame.image.load("spaceship.png")
 pygame.display.set_icon(icon)
 
 # Player
-playerImg = pygame.image.load("spacecraft.png")
+playerImg = pygame.image.load("player.png")
 playerX = 370
 playerY = 480
 playerX_change = 0
 
 # Enemy
-enemyImg = pygame.image.load("alien.png")
+enemyImg = pygame.image.load("enemy.png")
 enemyX = random.randint(0, 800)
 enemyY = random.randint(50, 150)
-enemyX_change = 0.3
-enemyY_change = 0
+enemyX_change = 4
+enemyY_change = 40
+
+# Bullet
+
+# Ready - You can't see the bullet on the screen.
+# Fire - The bullet is currently moving.
+bulletImg = pygame.image.load("bullet.png")
+bulletX = 0
+bulletY = 480
+bulletX_change = 0
+bulletY_change = 10
+bullet_state = "ready"
 
 
 def player(x, y):
@@ -34,11 +48,19 @@ def enemy(x, y):
     screen.blit(enemyImg, (x, y))
 
 
+def fire_bullet(x, y):
+    global bullet_state
+    bullet_state = "fire"
+    screen.blit(bulletImg, (x + 16, y + 10))
+
+
 # Game Loop
 running = True
 while running:
     # RGB - Red, Green, Blue
     screen.fill((0, 0, 0))
+    # Background image
+    screen.blit(background, (0, 0))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -47,29 +69,52 @@ while running:
         # If keystroke is pressed check whether its right or left.
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
-                playerX_change = -0.3
+                playerX_change = -5
             if event.key == pygame.K_RIGHT:
-                playerX_change = 0.3
+                playerX_change = 5
+            if event.key == pygame.K_SPACE:
+                if bullet_state is "ready":
+                    # Get the current x-coordinate of the Player (Spaceship)
+                    bulletX = playerX
+                    fire_bullet(bulletX, bulletY)
 
-        # Setting no movement of warship after key release
+        # Setting no movement of Player after key release
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT or pygame.K_RIGHT:
                 playerX_change = 0
 
-    # Warship movement to left or right.
+    # Player movement to left or right.
     playerX += playerX_change
 
-    # Boundaries to player (warship) movement
+    # Checking for boundaries to player (warship) so it doesn't go out of bounds.
     if playerX <= 0:
         playerX = 0
     elif playerX >= 736:
         playerX = 736
 
-    # Boundaries to player (warship) movement
+    # Enemy movement to left or right.
+    enemyX += enemyX_change
 
+    # Checking for boundaries to enemy (Alien) so it doesn't go out of bounds.
+    if enemyX <= 0:
+        enemyX_change = 4
+        enemyY += enemyY_change
+    elif enemyX >= 736:
+        enemyX_change = -4
+        enemyY += enemyY_change
+
+    # Bullet Movement
+    if bulletY <= 0:
+        bulletY = 480
+        bullet_state = "ready"
+
+    if bullet_state is "fire":
+        fire_bullet(bulletX, bulletY)
+        bulletY -= bulletY_change
 
     player(playerX, playerY)
     enemy(enemyX, enemyY)
+
     pygame.display.update()
 
 pygame.quit()
